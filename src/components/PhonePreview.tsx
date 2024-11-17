@@ -31,7 +31,7 @@ const PhonePreview = ({
     window.addEventListener('resize', handleResize)
 
     return () => window.removeEventListener('resize', handleResize)
-  }, [ref.current])
+  }, []) // Remove ref.current from dependencies as it's mutable
 
   let caseBackgroundColor = 'bg-zinc-950'
   if (color === 'blue') caseBackgroundColor = 'bg-blue-950'
@@ -49,6 +49,7 @@ const PhonePreview = ({
         }}>
         <img
           width={renderedDimensions.width / (3000 / 637)}
+          alt="Custom phone case design"
           className={cn(
             'phone-skew relative z-20 rounded-t-[15px] rounded-b-[10px] md:rounded-t-[30px] md:rounded-b-[20px]',
             caseBackgroundColor
