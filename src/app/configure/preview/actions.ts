@@ -20,10 +20,25 @@ export const createCheckoutSession = async ({
   }
 
   const { getUser } = getKindeServerSession()
-  const user = await getUser()
+  const kindeUser = await getUser()
+
+  if (!kindeUser || !kindeUser.email) {
+    throw new Error('You need to be logged in with a valid email')
+  }
+
+  // Ensure user exists in database
+  let user = await db.user.findFirst({
+    where: { email: kindeUser.email }
+  })
 
   if (!user) {
-    throw new Error('You need to be logged in')
+    // Create user if they don't exist
+    user = await db.user.create({
+      data: {
+        email: kindeUser.email,
+        id: kindeUser.id
+      }
+    })
   }
 
   const { finish, material } = configuration
@@ -68,7 +83,7 @@ export const createCheckoutSession = async ({
   const stripeSession = await stripe.checkout.sessions.create({
     success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/thank-you?orderId=${order.id}`,
     cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/configure/preview?id=${configuration.id}`,
-    payment_method_types: ['card', 'paypal'],
+    payment_method_types: ['card'],
     mode: 'payment',
     shipping_address_collection: { allowed_countries: ['DE', 'US'] },
     metadata: {
